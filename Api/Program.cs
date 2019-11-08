@@ -1,5 +1,6 @@
 using System;
 using Domain;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,7 @@ namespace Api
         public static void Main(string[] args)
         {
             // CreateHostBuilder(args).Build().Run();
-            var host = CreateHostBuilder(args).Build();
+            var host = CreateWebHostBuilder(args).Build();
 
             using (var scope = host.Services.CreateScope())
             {
@@ -24,10 +25,9 @@ namespace Api
                 
                 {
                     var context = services.GetRequiredService<DataContext>();
-                    //var userManager = services.GetRequiredService<UserManager<AppUser>>();
+                    var userManager = services.GetRequiredService<UserManager<AppUser>>();
                     context.Database.Migrate();
-                    Seed.SeedData(context);
-                    //Seed.SeedData(context, userManager).Wait();
+                    Seed.SeedData(context, userManager).Wait();
                 }
                 catch (Exception ex)
                 {
@@ -39,11 +39,8 @@ namespace Api
             host.Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>();
     }
 }
