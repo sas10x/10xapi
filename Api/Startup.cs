@@ -17,6 +17,8 @@ using Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace Api
 {
@@ -36,6 +38,11 @@ namespace Api
                 options.UseSqlServer(Configuration
                     ["Data:ConnectionString"]));
             services.AddMediatR(typeof(List.Handler).Assembly);
+            services.AddMvc(opt =>
+            {
+                var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+                opt.Filters.Add(new AuthorizeFilter(policy));
+            });
             services
                 .AddControllers()
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Create>());
@@ -63,6 +70,7 @@ namespace Api
                 };
             });
             services.AddScoped<IJwtGenerator, JwtGenerator>();
+            services.AddScoped<IUserAccessor, UserAccessor>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -73,14 +81,10 @@ namespace Api
             {
                 //app.UseDeveloperExceptionPage();
             }
-
             //app.UseHttpsRedirection();
-
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-            //app.UseIdentityServer();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
