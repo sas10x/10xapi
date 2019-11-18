@@ -19,6 +19,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using AutoMapper;
+using System;
+using System.Threading.Tasks;
 
 namespace Api
 {
@@ -35,40 +38,68 @@ namespace Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<DataContext>(options =>
-                options.UseSqlServer(Configuration
-                    ["Data:ConnectionString"]));
+            {
+                options.UseLazyLoadingProxies();
+                options.UseSqlServer(Configuration["Data:ConnectionString"]);
+            });
             services.AddMediatR(typeof(List.Handler).Assembly);
+            services.AddAutoMapper(typeof(List.Handler));
             services.AddMvc(opt =>
             {
                 var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
                 opt.Filters.Add(new AuthorizeFilter(policy));
-            });
-            services
-                .AddControllers()
+            })
+                .AddNewtonsoftJson()
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Create>());
+            //     services.AddControllers(opt =>
+            // {
+            //     var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+            //     opt.Filters.Add(new AuthorizeFilter(policy));
+            // })
+            //     .AddNewtonsoftJson()
+            //     .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Create>());
             services.AddIdentityCore<AppUser>()
                 .AddEntityFrameworkStores<DataContext>()
                 .AddSignInManager<SignInManager<AppUser>>();
-                
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("super secret key"));
-            services.AddAuthentication(options =>
-                {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-            .AddJwtBearer(options =>
+            services.AddAuthorization(opt => 
             {
-                options.SaveToken = true;
-                options.RequireHttpsMetadata = false;
-                options.TokenValidationParameters = new TokenValidationParameters
+                opt.AddPolicy("IsActivityHost", policy =>
                 {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = key,
-                    ValidateAudience = false,
-                    ValidateIssuer = false
-                };
+                    policy.Requirements.Add(new IsHostRequirement());
+                });
             });
+            services.AddTransient<IAuthorizationHandler, IsHostRequirementHandler>();
+            
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("super secret key"));
+            // services.AddAuthentication(options =>
+            //     {
+            //     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            //     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            //     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            //     })
+            // .AddJwtBearer(options =>
+            // {
+            //     options.SaveToken = true;
+            //     options.RequireHttpsMetadata = false;
+            //     options.TokenValidationParameters = new TokenValidationParameters
+            //     {
+            //         ValidateIssuerSigningKey = true,
+            //         IssuerSigningKey = key,
+            //         ValidateAudience = false,
+            //         ValidateIssuer = false
+            //     };
+            // });
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(opt =>
+                {
+                    opt.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = key,
+                        ValidateAudience = false,
+                        ValidateIssuer = false,
+                    };
+                });
             services.AddScoped<IJwtGenerator, JwtGenerator>();
             services.AddScoped<IUserAccessor, UserAccessor>();
         }

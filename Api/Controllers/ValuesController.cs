@@ -6,12 +6,11 @@ using Domain;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Api.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ValuesController : ControllerBase
+    public class ValuesController : BaseController
     {
         private readonly DataContext _context;
         public ValuesController(DataContext context)
@@ -26,6 +25,7 @@ namespace Api.Controllers
         //     return new string[] { "value1", "value2" };
         // }
          [HttpGet]
+         [Authorize(Policy = "IsActivityHost")]
         public async Task<ActionResult<IEnumerable<Value>>> Get()
         {
             var values = await _context.Values.ToListAsync();
