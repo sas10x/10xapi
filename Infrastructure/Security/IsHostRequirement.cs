@@ -38,7 +38,6 @@ namespace Infrastructure.Security
 
             if (host?.AppUser?.UserName == currentUserName)
                 context.Succeed(requirement);
-
             return Task.CompletedTask;
         }
     }

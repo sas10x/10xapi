@@ -12,8 +12,8 @@ namespace Api.Controllers
 {
     public class ActivitiesController : BaseController
     {
-        [AllowAnonymous]
         [HttpGet]
+        [Authorize(Policy = "IsActivityHost")]
         public async Task<ActionResult<List<ActivityDto>>> List()
         {
             return await Mediator.Send(new List.Query());
@@ -42,6 +42,7 @@ namespace Api.Controllers
         {
             return await Mediator.Send(new Delete.Command{Id = id});
         }
+        [Authorize(Policy = "IsActivityHost")]
         [HttpPost("{id}/attend")]
         public async Task<ActionResult<Unit>> Attend(Guid id)
         {
