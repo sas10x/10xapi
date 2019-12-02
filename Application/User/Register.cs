@@ -64,7 +64,7 @@ namespace Application.User
                 };
 
                 var result = await _userManager.CreateAsync(user, request.Password);
-                await _userManager.AddToRoleAsync(user, "User");
+
                 if (result.Succeeded)
                 {
                     return new User

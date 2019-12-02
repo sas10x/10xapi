@@ -25,9 +25,7 @@ namespace Api.Controllers
         //     return new string[] { "value1", "value2" };
         // }
          [HttpGet]
-         //[Authorize(Policy = "IsActivityHost")]
-         [Authorize(Policy = "IsUser")]
-        // [Authorize(Policy = "RequireAdministratorRole")]
+         [Authorize(Policy = "IsActivityHost")]
         public async Task<ActionResult<IEnumerable<Value>>> Get()
         {
             var values = await _context.Values.ToListAsync();
@@ -36,7 +34,6 @@ namespace Api.Controllers
 
         // GET api/values/5
         [HttpGet("{id}")]
-        [Authorize(Policy = "IsActivityHost")]
         public async Task<ActionResult<Value>> Get(int id)
         {
             var value = await _context.Values.FindAsync(id);
