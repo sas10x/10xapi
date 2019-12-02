@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace API.Middleware
+namespace Api.Middleware
 {
     public class ErrorHandlingMiddleware
     {

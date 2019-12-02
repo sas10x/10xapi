@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Application.Errors;
 using Application.Interfaces;
+using Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
@@ -16,7 +17,7 @@ namespace Application.Activities
     {
         public class Command : IRequest
         {
-                public Guid Id { get; set; }
+            public Guid Id { get; set; }
         }
         public class Handler : IRequestHandler<Command>
         {
@@ -24,20 +25,24 @@ namespace Application.Activities
             private readonly IUserAccessor _userAccessor;
             public Handler(DataContext context, IUserAccessor userAccessor)
             {
-               _context = context;
-               _userAccessor = userAccessor;
+                _context = context;
+                _userAccessor = userAccessor;
             }
 
+            public Handler(IUserAccessor userAccessor)
+            {
+                this.UserAccessor = userAccessor;
+
+            }
             public IUserAccessor UserAccessor { get; }
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
                 var activity = await _context.Activities.FindAsync(request.Id);
                 if (activity == null)
-                    throw new RestException(HttpStatusCode.NotFound, new {Activity = "Could not find activity"});
+                    throw new RestException(HttpStatusCode.NotFound, new { Activity = "Could not find activity" });
                 var user = await _context.Users.SingleOrDefaultAsync(x => x.UserName == _userAccessor.GetCurrentUsername());
                 var attendance = await _context.UserActivities.SingleOrDefaultAsync(x => x.ActivityId == activity.Id && x.AppUserId == user.Id);
-
                 if (attendance == null)
                     return Unit.Value;
                 if (attendance.IsHost)
@@ -45,7 +50,7 @@ namespace Application.Activities
                 _context.UserActivities.Remove(attendance);
                 var success = await _context.SaveChangesAsync() > 0;
                 if (success) return Unit.Value;
-                       throw new Exception("Problem saving changes");
+                throw new Exception("Problem saving changes");
             }
         }
     }

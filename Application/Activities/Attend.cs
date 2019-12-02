@@ -32,11 +32,14 @@ namespace Application.Activities
         
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                // logic
                 var activity = await _context.Activities.FindAsync(request.Id);
                 if (activity == null)
                     throw new RestException(HttpStatusCode.NotFound, new {Activity = "Could not find activity"});
                 var user = await _context.Users.SingleOrDefaultAsync(x => x.UserName == _userAccessor.GetCurrentUsername());
+                // if (user != null)
+                // {
+                //     throw new Exception(user.ToString());
+                // } 
                 var attendance = await _context.UserActivities.SingleOrDefaultAsync(x => x.ActivityId == activity.Id && x.AppUserId == user.Id);
                 if (attendance != null)
                     throw new RestException(HttpStatusCode.BadRequest, new {Attendance = "Already attending this activity"});

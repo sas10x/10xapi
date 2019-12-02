@@ -1,4 +1,3 @@
-using API.Middleware;
 using Application;
 using Application.Activities;
 using Application.Interfaces;
@@ -22,6 +21,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using AutoMapper;
 using System;
 using System.Threading.Tasks;
+using Api.Middleware;
 
 namespace Api
 {
@@ -51,14 +51,8 @@ namespace Api
             })
                 .AddNewtonsoftJson()
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Create>());
-            //     services.AddControllers(opt =>
-            // {
-            //     var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
-            //     opt.Filters.Add(new AuthorizeFilter(policy));
-            // })
-            //     .AddNewtonsoftJson()
-            //     .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Create>());
             services.AddIdentityCore<AppUser>()
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<DataContext>()
                 .AddSignInManager<SignInManager<AppUser>>();
             services.AddAuthorization(opt => 
@@ -67,28 +61,20 @@ namespace Api
                 {
                     policy.Requirements.Add(new IsHostRequirement());
                 });
+                opt.AddPolicy("IsUser", policy =>
+                {
+                    policy.Requirements.Add(new IsUserRequirement());
+                });
             });
+            // services.AddAuthorization(options =>
+            // {
+            //     options.AddPolicy("RequireAdministratorRole",
+            //         policy => policy.RequireRole("User"));
+            // });
             services.AddTransient<IAuthorizationHandler, IsHostRequirementHandler>();
+            services.AddTransient<IAuthorizationHandler, IsUserRequirementHandler>();
             
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("super secret key"));
-            // services.AddAuthentication(options =>
-            //     {
-            //     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            //     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            //     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            //     })
-            // .AddJwtBearer(options =>
-            // {
-            //     options.SaveToken = true;
-            //     options.RequireHttpsMetadata = false;
-            //     options.TokenValidationParameters = new TokenValidationParameters
-            //     {
-            //         ValidateIssuerSigningKey = true,
-            //         IssuerSigningKey = key,
-            //         ValidateAudience = false,
-            //         ValidateIssuer = false
-            //     };
-            // });
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(opt =>
                 {

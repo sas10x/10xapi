@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Application.Interfaces;
@@ -14,7 +15,6 @@ namespace Application.User
 
         public class Handler : IRequestHandler<Query, User>
         {
-            private readonly DataContext _context;
             private readonly UserManager<AppUser> _userManager;
             private readonly IJwtGenerator _jwtGenerator;
             private readonly IUserAccessor _userAccessor;
@@ -23,8 +23,6 @@ namespace Application.User
                 _userAccessor = userAccessor;
                 _jwtGenerator = jwtGenerator;
                 _userManager = userManager;
-
-
             }
 
             public async Task<User> Handle(Query request, CancellationToken cancellationToken)
@@ -35,10 +33,10 @@ namespace Application.User
                     DisplayName = user.DisplayName,
                     UserName = user.UserName,
                     Token = _jwtGenerator.CreateToken(user),
-                    Image = null
+                    Image = null,
+                    //Role = roles
                 };
             }
-
         }
     }
 }

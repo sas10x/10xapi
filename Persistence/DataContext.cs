@@ -13,6 +13,18 @@ namespace Persistence
         public DbSet<Value> Values { get; set; }
         public DbSet<Activity> Activities { get; set; }
         public DbSet<UserActivity> UserActivities { get; set; }
+        public DbSet<Product> Products { get; set; }
+         public DbSet<VarDiameter> VarDiameters { get; set; }
+        public DbSet<VarGrade> VarGrades { get; set; }
+        public DbSet<VarLength> VarLengths { get; set; }
+        public DbSet<Discount> Discounts { get; set; }
+        // New New   
+        public DbSet<Address> Addresses { get; set; }
+        public DbSet<City> Citys { get; set; }
+        public DbSet<Region> Regions { get; set; }
+        public DbSet<Province> Provinces { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<Order> Orders { get; set; }
 
         protected override void OnModelCreating (ModelBuilder builder)
         {
@@ -34,8 +46,6 @@ namespace Persistence
                 .HasOne(a => a.Activity)
                 .WithMany(u => u.UserActivities)
                 .HasForeignKey(a => a.ActivityId);
-                
-
         }  
     }
 }
